@@ -1,5 +1,5 @@
 import JsSHA from "jssha";
-import { randomBytes } from "crypto";
+import { randomInt } from "crypto";
 
 type Algorithm = "SHA-1" | "SHA-256" | "SHA-512";
 
@@ -53,37 +53,6 @@ function base32tohex(base32: string): string {
   return hex;
 }
 
-function hexToBase32(hexString: string): string {
-  // Define the base32 characters
-  const base32Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
-  // Initialize variables
-  let binaryString = "";
-  let result = "";
-
-  // Convert hexadecimal to binary
-  for (let i = 0; i < hexString.length; i += 2) {
-    const byte = parseInt(hexString.substr(i, 2), 16)
-      .toString(2)
-      .padStart(8, "0");
-    binaryString += byte;
-  }
-
-  // Convert binary to base32
-  for (let i = 0; i < binaryString.length; i += 5) {
-    const chunk = binaryString.substr(i, 5);
-    result += base32Chars[parseInt(chunk, 2)];
-  }
-
-  // Add padding if necessary
-  const padding = binaryString.length % 40;
-  if (padding > 0) {
-    result += "=".repeat(8 - padding / 5);
-  }
-
-  return result;
-}
-
 function extractCode(hmac: string): number {
   // Extract last 4 bits as offset
   const offset = parseInt(hmac[hmac.length - 1], 16) & 0xf;
@@ -122,10 +91,15 @@ export function generateOtp(
 }
 
 export function generateBase32Secret(length: number = 20): string {
-  // Generate a random byte array
-  const secretKey = randomBytes(length).toString("hex");
+  const base32chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  let secret = "";
 
-  return hexToBase32(secretKey);
+  for (let i = 0; i < length; i++) {
+    const randomIndex = randomInt(0, base32chars.length);
+    secret += base32chars[randomIndex];
+  }
+
+  return secret;
 }
 
 export function generateAuthURL(options: URLOptions): string {
